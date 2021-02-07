@@ -40,9 +40,8 @@ def add_current_url():
     print(current_url)
 
 def add_data_category(category_list,header_list):
-    for categories in soup.findAll("ul",{"class":"breadcrumb"}):
-        for category in soup.findAll("a")[3:]:
-            category_list.append(category.get_text())
+    for category in soup.find("ul",{"class":"breadcrumb"}).findAll("a")[2:]:
+        category_list.append(category.get_text())
     header_list.append("Category")
 
 def add_data_img(image_list,header_list):
