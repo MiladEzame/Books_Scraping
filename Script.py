@@ -54,6 +54,8 @@ def add_data_title(title_list,header_list):
     title_list.append(book_title)
     header_list.append("Title")
 
+
+# would it be better to have a dictionnary to write csv ?
 def write_file(header_list, value_list):
     # write everything in a csv file
     add_data_category(csv_values,csv_headers)
