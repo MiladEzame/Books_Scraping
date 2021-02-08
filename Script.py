@@ -19,48 +19,54 @@ image_url ok
 # for multiple pages, change the number into a variable to increment 
 # example with this url : https://books.toscrape.com/catalogue/category/books/sequential-art_5/page-[number_to_increment].html
 
-csv_headers = []
-csv_values = []
 
-# url of the website to scrape
-URL = "https://books.toscrape.com/catalogue/sharp-objects_997/index.html"
-
-# attempt to access the url, if req = 200 -> (success) 
-# instantiate a soup object with 2 parameters : the data content(can be text or other methods) needed and the type to parse  
-req = requests.get(URL)
-soup = bs(req.text, "html.parser")
-soup.prettify("utf-8")
-# still cannot write properly £ into the csv file
+def website_access():
+    # url of the website to scrape
+    URL = "https://books.toscrape.com/catalogue/sharp-objects_997/index.html"
+    # attempt to access the url, if req = 200 -> (success) 
+    # instantiate a soup object with 2 parameters : the data content(can be text or other methods) needed and the type to parse  
+    req = requests.get(URL)
+    soup = bs(req.text, "html.parser")
+    soup.prettify("utf-8")
+    return soup
 
 # cannot get anything different than ../../index.html, looking for get_current_url() function ?
-def add_current_url():
-    current_url = soup.find("div",{"class":"col-sm-8 h1"}).find("a").get("href")
-    #url_list.append(current_url)
-    #header_list.append("Current_Url")
-    print(current_url)
+def add_product_page_url(product_url_list, soup):
+    soup = website_access()
+    #req url response 
 
-def add_data_category(category_list,header_list):
+def add_header_product_url(header_list):
+    return "Product_url"
+
+def add_data_category(category_list,soup):
+    soup = website_access()
     for category in soup.find("ul",{"class":"breadcrumb"}).findAll("a")[2:]:
-        category_list.append(category.get_text())
-    header_list.append("Category")
+        return category.get_text()
 
-def add_data_img(image_list,header_list):
-    image_url = soup.img["src"]
-    image_list.append(image_url)
-    header_list.append("Image_url")
+def add_header_category(header_list):
+    return "Category"
 
-def add_data_title(title_list,header_list):
+def add_data_img(image_list,soup):
+    soup = website_access()
+    for img in soup.find("div",{"class":"col-sm-6"}).findAll("img"):
+        return img.get("src")
+
+def add_header_image(header_list):
+    return "Image_url"
+
+def add_data_title(title_list,soup):
+    soup = website_access()
     book_title = soup.find("h1").text.strip()
-    title_list.append(book_title)
-    header_list.append("Title")
+    return(book_title)
+
+def add_header_title(header_list):
+    return "Title"
 
 def write_file(header_list, value_list):
     # write everything in a csv file
-    add_data_category(csv_values,csv_headers)
-    add_data_img(csv_values,csv_headers)
-    add_data_title(csv_values,csv_headers)
+    soup = website_access()
     with open('book_scraped.csv', 'w',newline="") as file:
-        writer = csv.writer(file)
+        writer = csv.writer(file,delimiter=";")
 
         # loop into the list and get all the labels
         for header in soup.findAll("table",{"class":"table table-striped"}):
@@ -75,4 +81,14 @@ def write_file(header_list, value_list):
             writer.writerow(value_list)
     file.close()
 
-write_file(csv_headers,csv_values)
+if __name__ == "__main__":
+    csv_headers = []
+    csv_values = []
+    soup = website_access()
+    csv_headers.append(add_header_category(csv_headers))
+    csv_headers.append(add_header_image(csv_headers))
+    csv_headers.append(add_header_title(csv_headers))
+    csv_values.append(add_data_category(csv_values,soup))
+    csv_values.append(add_data_img(csv_values,soup))
+    csv_values.append(add_data_title(csv_values,soup))
+    write_file(csv_headers,csv_values)
