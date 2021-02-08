@@ -62,6 +62,8 @@ def add_data_title(title_list,soup):
 def add_header_title(header_list):
     return "Title"
 
+
+# would it be better to have a dictionnary to write csv ?
 def write_file(header_list, value_list):
     # write everything in a csv file
     soup = website_access()
