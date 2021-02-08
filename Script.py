@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup as bs
 import csv
 import requests
+from urllib.request import urlopen
 
 # information to gather :
 """
@@ -22,7 +23,7 @@ image_url ok
 
 def website_access():
     # url of the website to scrape
-    URL = "https://books.toscrape.com/catalogue/sharp-objects_997/index.html"
+    URL = "https://books.toscrape.com/catalogue/the-dirty-little-secrets-of-getting-your-dream-job_994/index.html"
     # attempt to access the url, if req = 200 -> (success) 
     # instantiate a soup object with 2 parameters : the data content(can be text or other methods) needed and the type to parse  
     req = requests.get(URL)
@@ -30,14 +31,17 @@ def website_access():
     soup.prettify("utf-8")
     return soup
 
-# cannot get anything different than ../../index.html, looking for get_current_url() function ?
-def add_product_page_url(product_url_list, soup):
+# cannot get anything different than ../../index.html, looking for get_current_url() function ? --> geturl() of urlopen module 
+def add_data_product_page_url(product_url_list, soup):
     soup = website_access()
-    #req url response 
+    req = urlopen("https://books.toscrape.com/catalogue/the-dirty-little-secrets-of-getting-your-dream-job_994/index.html")
+    return req.geturl()
 
+# add_header methods : header lists for csv file
 def add_header_product_url(header_list):
     return "Product_url"
 
+# add_data methods : data lists for csv file 
 def add_data_category(category_list,soup):
     soup = website_access()
     for category in soup.find("ul",{"class":"breadcrumb"}).findAll("a")[2:]:
@@ -56,21 +60,20 @@ def add_header_image(header_list):
 
 def add_data_title(title_list,soup):
     soup = website_access()
-    book_title = soup.find("h1").text.strip()
+    book_title = soup.find("div",{"class":"col-sm-6 product_main"}).find("h1").text.strip()
     return(book_title)
 
 def add_header_title(header_list):
     return "Title"
 
-
-# would it be better to have a dictionnary to write csv ?
+# write everything in a csv file
 def write_file(header_list, value_list):
-    # write everything in a csv file
+
     soup = website_access()
     with open('book_scraped.csv', 'w',newline="") as file:
         writer = csv.writer(file,delimiter=";")
 
-        # loop into the list and get all the labels
+        # loop into the list and get all the headers
         for header in soup.findAll("table",{"class":"table table-striped"}):
             for header_text in soup.findAll("th"):
                 header_list.append(header_text.get_text())
@@ -90,7 +93,9 @@ if __name__ == "__main__":
     csv_headers.append(add_header_category(csv_headers))
     csv_headers.append(add_header_image(csv_headers))
     csv_headers.append(add_header_title(csv_headers))
+    csv_headers.append(add_header_product_url(csv_headers))
     csv_values.append(add_data_category(csv_values,soup))
     csv_values.append(add_data_img(csv_values,soup))
     csv_values.append(add_data_title(csv_values,soup))
+    csv_values.append(add_data_product_page_url(csv_values,soup))
     write_file(csv_headers,csv_values)
