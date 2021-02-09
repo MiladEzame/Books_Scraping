@@ -2,6 +2,8 @@ from bs4 import BeautifulSoup as bs
 import csv
 import requests
 import Script
+from urllib.parse import urlparse, urlunparse
+
 
 # information to gather :
 """
@@ -26,16 +28,26 @@ image_url ok
 # example : new_book_url = "https://books.toscrape.com/catalogue/" + "a href" link
 # request that page then call the methods of Script.py on that page
 
-def category_website_access():
-    URL = "https://books.toscrape.com/catalogue/category/books/nonfiction_13/index.html"
+def category_website_access(URL):
     req = requests.get(URL)
-    soup = bs (req.txt,"html.parser")
+    soup = bs(req.content,"html.parser")
     soup.prettify("utf-8")
     return soup
 
-def navigate_books_single_page():
+def navigate_books_single_page(URL,soup):
     # parse urls and request them to access the data
-    print("")
+    soup = category_website_access(URL)
+    parsed = urlparse(URL)
+    base_url = urlunparse(parsed)[:37]
+    book_url = ""
+    # using [::2] because couldn't find any specific tag for the links, there were 2 similar "a href" tags inside the ol class = row
+    for books in soup.find("ol",{"class":"row"}).findAll("a")[::2]:
+        books_src = books.get("href")
+        book_url = books_src[9:]
+        final_url = base_url + book_url
+        req = requests.get(final_url)
+        print(req)
+        print(final_url)
 
 def navigate_different_pages():
     # find the pagination and request the different pages 
@@ -50,8 +62,10 @@ def write_csv_all_books():
     print("")
 
 if __name__ == "__main__":
-    test= []
-    print(Script.add_header_category(test))
+    URL = "https://books.toscrape.com/catalogue/category/books/nonfiction_13/index.html"
+    soup = category_website_access(URL)
+    navigate_books_single_page(URL,soup)
+
 
 
 """
