@@ -5,7 +5,7 @@ from urllib.request import urlopen
 
 # information to gather :
 """
-product_page_url not ok
+product_page_url ok
 universal_ product_code (upc) ok 
 title ok
 price_including_tax ok
@@ -21,9 +21,8 @@ image_url ok
 # example with this url : https://books.toscrape.com/catalogue/category/books/sequential-art_5/page-[number_to_increment].html
 
 
-def website_access():
+def website_access(URL):
     # url of the website to scrape
-    URL = "https://books.toscrape.com/catalogue/the-dirty-little-secrets-of-getting-your-dream-job_994/index.html"
     # attempt to access the url, if req = 200 -> (success) 
     # instantiate a soup object with 2 parameters : the data content(can be text or other methods) needed and the type to parse  
     req = requests.get(URL)
@@ -31,46 +30,41 @@ def website_access():
     soup.prettify("utf-8")
     return soup
 
-# cannot get anything different than ../../index.html, looking for get_current_url() function ? --> geturl() of urlopen module 
-def add_data_product_page_url(product_url_list, soup):
-    soup = website_access()
-    req = urlopen("https://books.toscrape.com/catalogue/the-dirty-little-secrets-of-getting-your-dream-job_994/index.html")
+def add_data_product_page_url(product_url_list, soup,URL):
+    # get current url
+    soup = website_access(URL)
+    req = urlopen(URL)
     return req.geturl()
 
-# add_header methods : header lists for csv file
-def add_header_product_url(header_list):
-    return "Product_url"
+def add_header_csv(header_list,URL):
+    # add_header method : header lists for csv file
+    header_list.append("Category")
+    header_list.append("Image")
+    header_list.append("Title")
+    header_list.append("Product_Url")
 
-# add_data methods : data lists for csv file 
-def add_data_category(category_list,soup):
-    soup = website_access()
+def add_data_category(category_list,soup,URL):
+    # add_data methods : data lists for csv file 
+    soup = website_access(URL)
     for category in soup.find("ul",{"class":"breadcrumb"}).findAll("a")[2:]:
         return category.get_text()
 
-def add_header_category(header_list):
-    return "Category"
-
-def add_data_img(image_list,soup):
-    soup = website_access()
+def add_data_img(image_list,soup,URL):
+    soup = website_access(URL)
     for img in soup.find("div",{"class":"col-sm-6"}).findAll("img"):
         return img.get("src")
 
-def add_header_image(header_list):
-    return "Image_url"
-
-def add_data_title(title_list,soup):
-    soup = website_access()
+def add_data_title(title_list,soup,URL):
+    soup = website_access(URL)
     book_title = soup.find("div",{"class":"col-sm-6 product_main"}).find("h1").text.strip()
     return(book_title)
 
-def add_header_title(header_list):
-    return "Title"
-
 # write everything in a csv file
-def write_file(header_list, value_list):
+def write_file(header_list, value_list,soup,URL):
 
-    soup = website_access()
+    soup = website_access(URL)
     with open('book_scraped.csv', 'w',newline="") as file:
+        # create a writer and assign the delimiter as ";" because of the french delimiter of csv files in excel
         writer = csv.writer(file,delimiter=";")
 
         # loop into the list and get all the headers
@@ -89,13 +83,11 @@ def write_file(header_list, value_list):
 if __name__ == "__main__":
     csv_headers = []
     csv_values = []
-    soup = website_access()
-    csv_headers.append(add_header_category(csv_headers))
-    csv_headers.append(add_header_image(csv_headers))
-    csv_headers.append(add_header_title(csv_headers))
-    csv_headers.append(add_header_product_url(csv_headers))
-    csv_values.append(add_data_category(csv_values,soup))
-    csv_values.append(add_data_img(csv_values,soup))
-    csv_values.append(add_data_title(csv_values,soup))
-    csv_values.append(add_data_product_page_url(csv_values,soup))
-    write_file(csv_headers,csv_values)
+    URL = "https://books.toscrape.com/catalogue/the-dirty-little-secrets-of-getting-your-dream-job_994/index.html"
+    soup = website_access(URL)
+    add_header_csv(csv_headers,URL)
+    csv_values.append(add_data_category(csv_values,soup,URL))
+    csv_values.append(add_data_img(csv_values,soup,URL))
+    csv_values.append(add_data_title(csv_values,soup,URL))
+    csv_values.append(add_data_product_page_url(csv_values,soup,URL))
+    write_file(csv_headers,csv_values,soup,URL)
