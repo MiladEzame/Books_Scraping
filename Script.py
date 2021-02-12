@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup as bs
 import csv
 import requests
 from urllib.request import urlopen
+from urllib.parse import urlparse, urlunparse
 
 # information to gather :
 """
@@ -36,12 +37,10 @@ def add_data_product_page_url(product_url_list, soup,URL):
     req = urlopen(URL)
     return req.geturl()
 
-def add_header_csv(header_list,URL):
+def add_header_csv(header_list):
     # add_header method : header lists for csv file
-    header_list.append("Category")
-    header_list.append("Image")
-    header_list.append("Title")
-    header_list.append("Product_Url")
+    header_list = ["Category","Image","Title","Product_Url","UPC", "Product Type", "Price (excl. tax)", "Price (incl. tax)", "Tax", "Availability", "Number of reviews"]
+    return header_list
 
 def add_data_category(category_list,soup,URL):
     # add_data methods : data lists for csv file 
@@ -51,43 +50,45 @@ def add_data_category(category_list,soup,URL):
 
 def add_data_img(image_list,soup,URL):
     soup = website_access(URL)
+    parsed = urlparse(URL)
+    base_url = urlunparse(parsed)[:27]
+    img_src = ""
     for img in soup.find("div",{"class":"col-sm-6"}).findAll("img"):
-        return img.get("src")
+        img_src = base_url + img.get("src")[6:] 
+        return img_src
 
 def add_data_title(title_list,soup,URL):
     soup = website_access(URL)
     book_title = soup.find("div",{"class":"col-sm-6 product_main"}).find("h1").text.strip()
     return(book_title)
 
-# write everything in a csv file
-def write_file(header_list, value_list,soup,URL):
-
+def add_data_table_values(value_list,soup,URL):
     soup = website_access(URL)
-    with open('book_scraped.csv', 'w',newline="") as file:
+    # loop into the list and get all the values from the table
+    for value in soup.findAll("table",{"class":"table table-striped"}):
+        for value_text in soup.findAll("td"):
+            value_list.append(value_text.get_text())
+    return value_list
+
+# write everything in a csv file
+def write_file(header_list, value_list,csv_name):
+    with open(csv_name, 'w',newline="") as file:
         # create a writer and assign the delimiter as ";" because of the french delimiter of csv files in excel
         writer = csv.writer(file,delimiter=";")
-
-        # loop into the list and get all the headers
-        for header in soup.findAll("table",{"class":"table table-striped"}):
-            for header_text in soup.findAll("th"):
-                header_list.append(header_text.get_text())
-            writer.writerow(header_list)
-
-        # loop into the list and get all the values
-        for value in soup.findAll("table",{"class":"table table-striped"}):
-            for value_text in soup.findAll("td"):
-                value_list.append(value_text.get_text())
-            writer.writerow(value_list)
+        header_list = add_header_csv(header_list)
+        writer.writerow(header_list)
+        add_data_table_values(value_list,soup,URL)
+        writer.writerow(value_list)
     file.close()
 
 if __name__ == "__main__":
     csv_headers = []
     csv_values = []
+    csv_name = "book_scraped.csv"
     URL = "https://books.toscrape.com/catalogue/the-dirty-little-secrets-of-getting-your-dream-job_994/index.html"
     soup = website_access(URL)
-    add_header_csv(csv_headers,URL)
     csv_values.append(add_data_category(csv_values,soup,URL))
     csv_values.append(add_data_img(csv_values,soup,URL))
     csv_values.append(add_data_title(csv_values,soup,URL))
     csv_values.append(add_data_product_page_url(csv_values,soup,URL))
-    write_file(csv_headers,csv_values,soup,URL)
+    write_file(csv_headers,csv_values,csv_name)
