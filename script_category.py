@@ -29,7 +29,7 @@ def navigate_books_single_page(soup, url):
     return urls_books
 
 # navigate multiple pages and retrieve the data from each books in each page
-def scrape_all_books_one_category(soup, url, csv_name):
+def scrape_all_books_one_category(soup, url):
     if soup.find("li",{"class":"current"}):
         next_page = soup.find("li",{"class":"current"}).text.strip()
         next_page = next_page.split(" ")
@@ -48,18 +48,18 @@ def scrape_all_books_one_category(soup, url, csv_name):
         req = requests.get(next_url)    
         soup = bs(req.content,"html.parser")
         if req.status_code == 200:
-            urls = (navigate_books_single_page(soup, next_url))
-            scrape_data_from_product_page(urls, csv_name)
+            scrape_data_from_product_page(soup, next_url)
         else:
             next_url = base_url + "index.html" 
             req = requests.get(next_url) 
             soup = bs(req.content,"html.parser")
-            urls = (navigate_books_single_page(soup, next_url))
-            scrape_data_from_product_page(urls, csv_name)
+            scrape_data_from_product_page(soup, next_url)
             break
 
 # call all the functions from previous script
-def scrape_data_from_product_page(urls_books, csv_name):
+def scrape_data_from_product_page(soup, url):
+    urls_books = navigate_books_single_page(soup, url)
+    scrape_images_from_pages(urls_books)
     for urls in urls_books:
         values = []
         soup = category_website_access(urls)
@@ -69,10 +69,17 @@ def scrape_data_from_product_page(urls_books, csv_name):
         values.append(script.add_data_product_page_url(values, soup, urls))
         for value_text in soup.findAll("td"):
             values.append(value_text.get_text())
-        write_csv_values(values,csv_name)
+        write_csv_values(values)
 
-def write_csv_headers(csv_name):
-    with open(csv_name, 'w', encoding='utf-8', newline="") as file:
+def scrape_images_from_pages(urls_books):
+    for urls in urls_books:
+        images = []
+        soup = category_website_access(urls)
+        images.append(script.add_data_img(images, soup, urls))
+        write_csv_images(images)        
+
+def write_csv_headers():
+    with open("books_one_category_scraped.csv", 'w', encoding='utf-8', newline="") as file:
         # create a writer and assign the delimiter as ";" because of the french delimiter of csv files in excel
         headers = []
         headers = script.add_header_csv(headers)
@@ -80,18 +87,33 @@ def write_csv_headers(csv_name):
         writer.writerow(headers)
     file.close()
 
-def write_csv_values(values, csv_name):
-    with open(csv_name, 'a', encoding='utf-8', newline="") as file:
+def write_csv_image_header():
+    with open("images.csv", 'w', encoding='utf-8') as file:
+        # create a writer and assign the delimiter as ";" because of the french delimiter of csv files in excel
+        writer = csv.writer(file, delimiter = "\n")
+        header = []
+        header.append("All images saved")
+        writer.writerow(header)
+    file.close()
+
+def write_csv_values(values):
+    with open("books_one_category_scraped.csv", 'a', encoding='utf-8', newline="") as file:
         # create a writer and assign the delimiter as ";" because of the french delimiter of csv files in excel
         writer = csv.writer(file,delimiter=";")
         writer.writerow(values)
         file.close()
 
+def write_csv_images(values):
+    with open("images.csv", 'a', encoding='utf-8', newline="") as file:
+        # create a writer and assign the delimiter as ";" because of the french delimiter of csv files in excel
+        writer = csv.writer(file,delimiter=";")
+        writer.writerow(values)
+        file.close()
 
 if __name__ == "__main__":
     url = "https://books.toscrape.com/catalogue/category/books/childrens_11/index.html"
     # argparse 
     soup = category_website_access(url)
-    csv_name = "books_one_category_scraped.csv"
-    write_csv_headers(csv_name)
-    scrape_all_books_one_category(soup, url, csv_name)
+    write_csv_image_header()
+    write_csv_headers()
+    scrape_all_books_one_category(soup, url)
