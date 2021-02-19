@@ -64,6 +64,24 @@ def add_data_table_values(values, soup,url):
             values.append(value_text.get_text())
     return values
 
+def parse_url(soup,url):
+    parsed = urlparse(url)
+    end_url = parsed.path.split("/")
+    mid_url = ""
+    for path in end_url[1:2]:
+        mid_url = mid_url + path + "/"
+    base_url = parsed.scheme + "://" + parsed.netloc + "/" + mid_url
+    page = 1 
+    next_url = base_url + "page-{}.html".format(page)
+    req = requests.get(next_url)
+    if req.status_code == 200:
+        print(req)
+        print(next_url)
+    else:
+        next_url = base_url + "index.html"
+        req = requests.get(next_url)
+        print(req)
+        print(next_url)
 
 # write everything in a csv file
 def write_file(headers, values, csv_name):
@@ -82,8 +100,9 @@ if __name__ == "__main__":
     csv_name = "book_scraped.csv"
     url = "https://books.toscrape.com/catalogue/category/books/nonfiction_13/index.html"
     soup = website_access(url)
-    csv_values.append(add_data_category(csv_values,soup,url))
+    parse_url(soup,url)
+    """csv_values.append(add_data_category(csv_values,soup,url))
     csv_values.append(add_data_img(csv_values,soup,url))
     csv_values.append(add_data_title(csv_values,soup,url))
     csv_values.append(add_data_product_page_url(csv_values,soup,url))
-    write_file(csv_headers,csv_values,csv_name)
+    write_file(csv_headers,csv_values,csv_name)"""
