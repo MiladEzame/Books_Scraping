@@ -29,7 +29,7 @@ def navigate_books_single_page(soup, url):
     return urls_books
 
 # navigate multiple pages and retrieve the data from each books in each page
-def scrape_all_books_one_category(soup, url):
+def scrape_all_books_one_category(soup, url, csv_name):
     if soup.find("li",{"class":"current"}):
         next_page = soup.find("li",{"class":"current"}).text.strip()
         next_page = next_page.split(" ")
@@ -48,38 +48,40 @@ def scrape_all_books_one_category(soup, url):
         req = requests.get(next_url)    
         soup = bs(req.content,"html.parser")
         if req.status_code == 200:
-            scrape_data_from_product_page(soup, next_url)
+            scrape_data_from_product_page(soup, next_url, csv_name)
+            if page == max_page:
+                break
         else:
             next_url = base_url + "index.html" 
             req = requests.get(next_url) 
             soup = bs(req.content,"html.parser")
-            scrape_data_from_product_page(soup, next_url)
+            scrape_data_from_product_page(soup, next_url, csv_name)
             break
 
 # call all the functions from previous script
-def scrape_data_from_product_page(soup, url):
+def scrape_data_from_product_page(soup, url, csv_name):
     urls_books = navigate_books_single_page(soup, url)
-    scrape_images_from_pages(urls_books)
+    scrape_images_from_pages(soup, urls_books)
     for urls in urls_books:
         values = []
         soup = category_website_access(urls)
-        values.append(script.add_data_category(values, soup,urls))
-        values.append(script.add_data_img(values, soup, urls))
-        values.append(script.add_data_title(values, soup, urls))
-        values.append(script.add_data_product_page_url(values, soup, urls))
+        values.append(script.add_data_category(soup,urls))
+        values.append(script.add_data_img(soup, urls))
+        values.append(script.add_data_title(soup, urls))
+        values.append(script.add_data_product_page_url(soup, urls))
         for value_text in soup.findAll("td"):
             values.append(value_text.get_text())
-        write_csv_values(values)
+        write_csv_values(values, csv_name)
 
-def scrape_images_from_pages(urls_books):
-    for urls in urls_books:
+def scrape_images_from_pages(soup, urls_books):
+    for url in urls_books:
         images = []
-        soup = category_website_access(urls)
-        images.append(script.add_data_img(images, soup, urls))
+        soup = category_website_access(url)
+        images.append(script.add_data_img(soup, url))
         write_csv_images(images)        
 
-def write_csv_headers():
-    with open("books_one_category_scraped.csv", 'w', encoding='utf-8', newline="") as file:
+def write_csv_headers(csv_name):
+    with open(csv_name, 'w', encoding='utf-8', newline="") as file:
         # create a writer and assign the delimiter as ";" because of the french delimiter of csv files in excel
         headers = []
         headers = script.add_header_csv(headers)
@@ -96,8 +98,8 @@ def write_csv_image_header():
         writer.writerow(header)
     file.close()
 
-def write_csv_values(values):
-    with open("books_one_category_scraped.csv", 'a', encoding='utf-8', newline="") as file:
+def write_csv_values(values, csv_name):
+    with open(csv_name, 'a', encoding='utf-8', newline="") as file:
         # create a writer and assign the delimiter as ";" because of the french delimiter of csv files in excel
         writer = csv.writer(file,delimiter=";")
         writer.writerow(values)
@@ -113,7 +115,8 @@ def write_csv_images(values):
 if __name__ == "__main__":
     url = "https://books.toscrape.com/catalogue/category/books/childrens_11/index.html"
     # argparse 
+    csv_name = "books_one_category_scraped.csv"
     soup = category_website_access(url)
     write_csv_image_header()
-    write_csv_headers()
-    scrape_all_books_one_category(soup, url)
+    write_csv_headers(csv_name)
+    scrape_all_books_one_category(soup, url, csv_name)

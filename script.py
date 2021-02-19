@@ -31,33 +31,34 @@ def website_access(url):
     soup.prettify("utf-8")
     return soup
 
-def add_data_product_page_url(product_urls, soup,url):
+def add_data_product_page_url(soup, url):
     # get current url
     req = urlopen(url)
     return req.geturl()
+    
 
 def add_header_csv(headers):
     # add_header method : header lists for csv file
     headers = ["Category","Image","Title","Product_url","UPC", "Product Type", "Price (excl. tax)", "Price (incl. tax)", "Tax", "Availability", "Number of reviews"]
     return headers
 
-def add_data_category(categories, soup,url):
+def add_data_category(soup, url):
     # add_data methods : data lists for csv file 
     for category in soup.find("ul",{"class":"breadcrumb"}).findAll("a")[2:]:
         return category.get_text()
 
-def add_data_img(images, soup,url):
+def add_data_img(soup, url):
     base_url = url[:27]
     img_src = ""
     for img in soup.find("div",{"class":"col-sm-6"}).findAll("img"):
         img_src = base_url + img.get("src")[6:] 
         return img_src
 
-def add_data_title(titles, soup,url):
+def add_data_title(soup, url):
     book_title = soup.find("div",{"class":"col-sm-6 product_main"}).find("h1").text.strip()
     return(book_title)
 
-def add_data_table_values(values, soup,url):
+def add_data_table_values(soup, url):
     # loop into the list and get all the values from the table
     for value in soup.findAll("table",{"class":"table table-striped"}):
         for value_text in soup.findAll("td"):
@@ -68,6 +69,9 @@ def parse_url(soup,url):
     parsed = urlparse(url)
     end_url = parsed.path.split("/")
     mid_url = ""
+    unparsed = urlunparse((parsed.scheme, parsed.netloc, parsed.path, None, None, None))
+    print(unparsed)
+    print(parsed)
     for path in end_url[1:2]:
         mid_url = mid_url + path + "/"
     base_url = parsed.scheme + "://" + parsed.netloc + "/" + mid_url
@@ -100,9 +104,10 @@ if __name__ == "__main__":
     csv_name = "book_scraped.csv"
     url = "https://books.toscrape.com/catalogue/category/books/nonfiction_13/index.html"
     soup = website_access(url)
-    parse_url(soup,url)
+    #parse_url(soup, url)
+    add_data_product_page_url(soup, url)
     """csv_values.append(add_data_category(csv_values,soup,url))
-    csv_values.append(add_data_img(csv_values,soup,url))
-    csv_values.append(add_data_title(csv_values,soup,url))
-    csv_values.append(add_data_product_page_url(csv_values,soup,url))
-    write_file(csv_headers,csv_values,csv_name)"""
+    csv_values.append(add_data_img(csv_values, soup, url))
+    csv_values.append(add_data_title(csv_values, soup, url))
+    csv_values.append(add_data_product_page_url(csv_values, soup,url))
+    write_file(csv_headers, csv_values, csv_name)"""
