@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup as bs
 import csv
 import requests
+import os
 from urllib.request import urlopen
 from urllib.parse import urlparse, urlunparse
 
@@ -39,7 +40,7 @@ def add_data_product_page_url(soup, url):
 
 def add_header_csv(headers):
     # add_header method : header lists for csv file
-    headers = ["Category","Image","Title","Product_url","UPC", "Product Type", "Price (excl. tax)", "Price (incl. tax)", "Tax", "Availability", "Number of reviews"]
+    headers = ["Category","Image","Product_description","Title","Product_page_url","Universal_ product_code (upc)", "Product Type", "Price_excluding_tax", "Price_including_tax", "Tax", "Number_available", "Number of reviews"]
     return headers
 
 def add_data_category(soup, url):
@@ -65,6 +66,11 @@ def add_data_table_values(soup, url):
             values.append(value_text.get_text())
     return values
 
+def add_product_description(soup):
+    for item in soup.select("article.product_page > p"):
+        description = item.text.strip()
+    return description
+"""
 def parse_url(soup,url):
     parsed = urlparse(url)
     end_url = parsed.path.split("/")
@@ -86,6 +92,18 @@ def parse_url(soup,url):
         req = requests.get(next_url)
         print(req)
         print(next_url)
+"""
+
+def download_image(soup, url):
+    parsed = urlparse(url)
+    base_url = parsed.scheme + "://" + parsed.netloc + "/"
+    for image in soup.find("div",{"class":"col-sm-6"}).findAll("img"):
+        name = image["alt"].replace(" ","_")
+        link = base_url + image["src"]
+        with open(name + ".jpg" , "ab") as f:
+            im = requests.get(link)
+            f.write(im.content)
+    f.close()
 
 # write everything in a csv file
 def write_file(headers, values, csv_name):
@@ -102,10 +120,13 @@ if __name__ == "__main__":
     csv_headers = []
     csv_values = []
     csv_name = "book_scraped.csv"
-    url = "https://books.toscrape.com/catalogue/category/books/nonfiction_13/index.html"
+    url = "https://books.toscrape.com/catalogue/in-a-dark-dark-wood_963/index.html"
     soup = website_access(url)
+    folder = "Images_Saved"
+    #add_product_description(soup)
     #parse_url(soup, url)
-    add_data_product_page_url(soup, url)
+    #add_data_product_page_url(soup, url)
+    download_image(soup, url, folder)
     """csv_values.append(add_data_category(csv_values,soup,url))
     csv_values.append(add_data_img(csv_values, soup, url))
     csv_values.append(add_data_title(csv_values, soup, url))

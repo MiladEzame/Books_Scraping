@@ -43,12 +43,12 @@ def scrape_books_from_all_categories(soup, url):
     csv_names = csv_category_by_name(soup, url)
     for url,csv_name in zip(all_urls, csv_names):
         script_category.write_csv_headers(csv_name)
-        script_category.scrape_all_books_one_category(soup, url, csv_name)
+        script_category.scrape_all_books_one_category(soup, url, csv_name, folder)
 
 if __name__ == "__main__":
     url = "https://books.toscrape.com/index.html"
     soup = script_category.category_website_access(url)
     csv_names = csv_category_by_name(soup, url)
+    folder = "Images_Saved"
     #navigate_all_categories(soup, url)
-    script_category.write_csv_image_header()
     scrape_books_from_all_categories(soup, url)
