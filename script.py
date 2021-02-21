@@ -4,6 +4,7 @@ import requests
 import os
 from urllib.request import urlopen
 from urllib.parse import urlparse, urlunparse
+import re
 
 # information to gather :
 """
@@ -98,11 +99,13 @@ def download_image(soup, url):
     parsed = urlparse(url)
     base_url = parsed.scheme + "://" + parsed.netloc + "/"
     for image in soup.find("div",{"class":"col-sm-6"}).findAll("img"):
-        name = image["alt"].replace(" ","_")
-        link = base_url + image["src"]
-        with open(name + ".jpg" , "ab") as f:
-            im = requests.get(link)
-            f.write(im.content)
+        name = image["alt"].replace(":"," ")[:25]
+        re.sub("[^A-Za-z0-9]+"," ",name)
+        print("Saving : {}".format(name))
+        link = base_url + image.get("src")[6:] 
+        with open(name + ".jpg", "ab") as f:
+            img = requests.get(link)
+            f.write(img.content)
     f.close()
 
 # write everything in a csv file
@@ -120,13 +123,13 @@ if __name__ == "__main__":
     csv_headers = []
     csv_values = []
     csv_name = "book_scraped.csv"
-    url = "https://books.toscrape.com/catalogue/in-a-dark-dark-wood_963/index.html"
+    url = "https://books.toscrape.com/catalogue/full-moon-over-noahs-ark-an-odyssey-to-mount-ararat-and-beyond_811/index.html"
     soup = website_access(url)
     folder = "Images_Saved"
     #add_product_description(soup)
     #parse_url(soup, url)
     #add_data_product_page_url(soup, url)
-    download_image(soup, url, folder)
+    download_image(soup, url)
     """csv_values.append(add_data_category(csv_values,soup,url))
     csv_values.append(add_data_img(csv_values, soup, url))
     csv_values.append(add_data_title(csv_values, soup, url))

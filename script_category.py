@@ -54,7 +54,7 @@ def scrape_all_books_one_category(soup, url, csv_name, folder):
             next_url = base_url + "index.html" 
             req = requests.get(next_url) 
             soup = bs(req.content,"html.parser")
-            scrape_data_from_product_page(soup, next_url, csv_name)
+            scrape_data_from_product_page(soup, next_url, csv_name, folder)
             break
 
 # call all the functions from previous script
