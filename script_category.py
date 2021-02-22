@@ -33,6 +33,7 @@ def navigate_books_single_page(soup, url):
 def scrape_all_books_one_category(soup, url, csv_name, folder):
     if soup.find("li",{"class":"current"}):
         next_page = soup.find("li",{"class":"current"}).text.strip()
+        print(next_page)
         next_page = next_page.split(" ")
         max_page = int(next_page[-1])
     else: 
@@ -45,9 +46,10 @@ def scrape_all_books_one_category(soup, url, csv_name, folder):
     base_url = parsed.scheme + "://" + parsed.netloc + "/" + mid_url
     for page in range(1, max_page+1):
         next_url = base_url + "page-{}.html".format(page)   
-        urls = [] 
+         urls = [] 
         req = requests.get(next_url)    
         soup = bs(req.content,"html.parser")
+        print(req.status_code)
         if req.status_code == 200:
             scrape_data_from_product_page(soup, next_url, csv_name, folder)
         else:
@@ -55,7 +57,7 @@ def scrape_all_books_one_category(soup, url, csv_name, folder):
             req = requests.get(next_url) 
             soup = bs(req.content,"html.parser")
             scrape_data_from_product_page(soup, next_url, csv_name, folder)
-            break
+            break 
 
 # call all the functions from previous script
 def scrape_data_from_product_page(soup, url, csv_name, folder):
@@ -82,12 +84,14 @@ def create_directory(folder):
     except:
         os.chdir(os.path.join(os.getcwd(), folder))
 
+"""
 def scrape_images_from_pages(soup, urls_books):
     for url in urls_books:
         images = []
         soup = category_website_access(url)
         images.append(script.add_data_img(soup, url))
         write_csv_images(images)        
+"""
 
 def write_csv_headers(csv_name):
     with open(csv_name, 'w', encoding='utf-8', newline="") as file:
@@ -130,7 +134,6 @@ if __name__ == "__main__":
     csv_name = "books_one_category_scraped.csv"
     folder = "Images_Saved"
     soup = category_website_access(url)
-    #write_csv_image_header()
     write_csv_headers(csv_name)
     create_directory(folder)
     scrape_all_books_one_category(soup, url, csv_name, folder)

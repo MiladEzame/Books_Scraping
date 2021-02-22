@@ -6,23 +6,6 @@ from urllib.request import urlopen
 from urllib.parse import urlparse, urlunparse
 import re
 
-# information to gather :
-"""
-product_page_url ok
-universal_ product_code (upc) ok 
-title ok
-price_including_tax ok
-price_excluding_tax ok
-number_available ok
-product_description ok
-category ok
-review_rating ok
-image_url ok
-"""
-
-# for multiple pages, change the number into a variable to increment 
-# example with this url : https://books.toscrape.com/catalogue/category/books/sequential-art_5/page-[number_to_increment].html
-
 
 def website_access(url):
     # url of the website to scrape
@@ -37,7 +20,6 @@ def add_data_product_page_url(soup, url):
     # get current url
     req = urlopen(url)
     return req.geturl()
-    
 
 def add_header_csv(headers):
     # add_header method : header lists for csv file
@@ -71,12 +53,13 @@ def add_product_description(soup):
     for item in soup.select("article.product_page > p"):
         description = item.text.strip()
     return description
-"""
+
+
 def parse_url(soup,url):
     parsed = urlparse(url)
     end_url = parsed.path.split("/")
     mid_url = ""
-    unparsed = urlunparse((parsed.scheme, parsed.netloc, parsed.path, None, None, None))
+    unparsed = urlunparse((parsed.scheme, parsed.netloc, "", None, None, None))
     print(unparsed)
     print(parsed)
     for path in end_url[1:2]:
@@ -93,7 +76,7 @@ def parse_url(soup,url):
         req = requests.get(next_url)
         print(req)
         print(next_url)
-"""
+
 
 def download_image(soup, url):
     parsed = urlparse(url)
@@ -127,9 +110,9 @@ if __name__ == "__main__":
     soup = website_access(url)
     folder = "Images_Saved"
     #add_product_description(soup)
-    #parse_url(soup, url)
+    parse_url(soup, url)
     #add_data_product_page_url(soup, url)
-    download_image(soup, url)
+    #download_image(soup, url)
     """csv_values.append(add_data_category(csv_values,soup,url))
     csv_values.append(add_data_img(csv_values, soup, url))
     csv_values.append(add_data_title(csv_values, soup, url))
