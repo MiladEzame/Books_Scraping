@@ -13,11 +13,11 @@ def navigate_all_categories(soup, url):
     """
     parsed = urlparse(url)
     base_url = urlunparse((parsed.scheme, parsed.netloc, "/", None, None, None))
-    navigation = soup.find("ul",{"class":"nav nav-list"})
+    navigation = soup.find("ul", {"class": "nav nav-list"})
     categories_url = []
     for categories in navigation.find("ul").findAll("li"):
         for category_text in categories.findAll("a"):
-            category_value = category_text.get("href").replace(" ", "_")
+            category_value = category_text.get("href")
             final_url = base_url + category_value
             script_category.category_website_access(final_url)
             categories_url.append(final_url)
@@ -30,7 +30,7 @@ def get_category_names(soup, url):
     """
     parsed = urlparse(url)
     base_url = urlunparse((parsed.scheme, parsed.netloc, "/", None, None, None))
-    navigation = soup.find("ul",{"class":"nav nav-list"})
+    navigation = soup.find("ul", {"class": "nav nav-list"})
     category_names = []
     for categories in navigation.find("ul").findAll("li"):
         for category_text in categories.findAll("a"):

@@ -11,7 +11,7 @@ def category_website_access(url):
         Then retrieving its content through a beautiful soup object
     """
     req = requests.get(url)
-    soup = bs(req.content,"html.parser")
+    soup = bs(req.content, "html.parser")
     soup.prettify("utf-8")
     return soup
 
@@ -23,7 +23,7 @@ def navigate_books_single_page(soup, url):
     base_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path.split("/")[1], None, None, None))
     book_url = ""
     urls_books = []
-    for books in soup.find("ol",{"class":"row"}).findAll("a")[::2]:
+    for books in soup.find("ol", {"class": "row"}).findAll("a")[::2]:
         books_src = books.get("href")
         book_url = books_src[9:]
         final_url = base_url + "/" + book_url
@@ -42,10 +42,10 @@ def scrape_data_from_product_page(soup, url, csv_name, folder):
     for urls in urls_books:
         values = []
         soup = category_website_access(urls)
-        script.download_image(soup,urls)
+        script.download_image(soup, urls)
         os.chdir("..")
         values.append(script.add_data_category(soup))
-        values.append(script.add_data_img(soup, url))
+        values.append(script.add_data_img(soup, urls))
         values.append(script.add_product_description(soup))
         values.append(script.add_data_title(soup))
         values.append(script.add_data_product_page_url(soup, urls))
@@ -56,7 +56,6 @@ def scrape_data_from_product_page(soup, url, csv_name, folder):
 
 def scrape_all_books_one_category(soup, url, csv_name, folder):
     """
-        This 
         Looking for the number of pages inside the condition
         Using max_page to define the number of iteration inside for loop
         Inside the range, navigate from page 1 to X 
@@ -64,25 +63,26 @@ def scrape_all_books_one_category(soup, url, csv_name, folder):
         If not then we define a new url with index to avoid request errors
         Then we call the scrape_data_from_product_page() method
     """
-    if soup.find("li",{"class":"current"}):
-        next_page = soup.find("li",{"class":"current"}).text.strip()
+    if soup.find("li", {"class": "current"}):
+        next_page = soup.find("li", {"class": "current"}).text.strip()
         next_page = next_page.split(" ")
         max_page = int(next_page[-1])
     else: 
         max_page = 1
     parsed = urlparse(url)
-    base_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path[:36], None, None, None))
+    path = os.path.split(parsed.path)
+    base_url = urlunparse((parsed.scheme, parsed.netloc, path[0], None, None, None))
     for page in range(1, max_page+1):
-        next_url = base_url + "page-{}.html".format(page)   
+        next_url = base_url + "/page-{}.html".format(page)   
         urls = [] 
         req = requests.get(next_url)    
-        soup = bs(req.content,"html.parser")
+        soup = bs(req.content, "html.parser")
         if req.status_code == 200:
             scrape_data_from_product_page(soup, next_url, csv_name, folder)
         else:
-            next_url = base_url + "index.html" 
+            next_url = base_url + "/index.html" 
             req = requests.get(next_url) 
-            soup = bs(req.content,"html.parser")
+            soup = bs(req.content, "html.parser")
             scrape_data_from_product_page(soup, next_url, csv_name, folder)
             break 
 
@@ -102,9 +102,9 @@ def write_csv_headers(csv_name):
     """
         Writing all the headers into the csv file 
     """
-    with open(csv_name, 'w', encoding='utf-8', newline="") as file:
+    with open(csv_name, 'w', encoding = 'utf-8', newline="") as file:
         headers = script.add_header_csv()
-        writer = csv.writer(file,delimiter=";")
+        writer = csv.writer(file, delimiter = ";")
         writer.writerow(headers)
     file.close()
 
@@ -112,8 +112,8 @@ def write_csv_values(values, csv_name):
     """
         Writing all the values inside the csv file
     """
-    with open(csv_name, 'a', encoding='utf-8', newline="") as file:
-        writer = csv.writer(file,delimiter=";")
+    with open(csv_name, 'a', encoding = 'utf-8', newline = "") as file:
+        writer = csv.writer(file, delimiter = ";")
         writer.writerow(values)
         file.close()
 
@@ -124,7 +124,7 @@ if __name__ == "__main__":
         Creating a folder once (we do not want to repeat it inside a loop)
         Scraping all the books in all the pages of one single category
     """
-    url = "https://books.toscrape.com/catalogue/category/books/mystery_3/index.html"
+    url = "https://books.toscrape.com/catalogue/category/books/travel_2/index.html"
     csv_name = "books_one_category_scraped.csv"
     folder = "Images_Saved"
     soup = category_website_access(url)
