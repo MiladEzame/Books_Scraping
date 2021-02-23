@@ -6,83 +6,91 @@ from urllib.request import urlopen
 from urllib.parse import urlparse, urlunparse
 import re
 
-
 def website_access(url):
-    # url of the website to scrape
-    # attempt to access the url, if req = 200 -> (success) 
-    # instantiate a soup object with 2 parameters : the data content(can be text or other methods) needed and the type to parse  
+    """
+    Requesting access to the website in parameter(url)
+    Then retrieving its content through a beautiful soup object
+    """
     req = requests.get(url)
-    soup = bs(req.text, "html.parser")
+    soup = bs(req.content, "html.parser")
     soup.prettify("utf-8")
     return soup
 
 def add_data_product_page_url(soup, url):
-    # get current url
+    """
+    Retrieves the current url by requesting through the geturl() 
+    Method in the urlopen module
+    """
     req = urlopen(url)
     return req.geturl()
 
-def add_header_csv(headers):
-    # add_header method : header lists for csv file
-    headers = ["Category","Image","Product_description","Title","Product_page_url","Universal_ product_code (upc)", "Product Type", "Price_excluding_tax", "Price_including_tax", "Tax", "Number_available", "Number of reviews"]
+def add_header_csv():
+    """
+    Returns all the headers in the form of a list 
+    That list is going to be writter inside the write_file() method
+    """
+    headers = ["Category", "Image", "Product_description", "Title","Product_page_url", 
+    "Universal_ product_code (upc)", "Product Type", "Price_excluding_tax", 
+    "Price_including_tax", "Tax", "Number_available", "Number of reviews"]
     return headers
 
-def add_data_category(soup, url):
-    # add_data methods : data lists for csv file 
+def add_data_category(soup):
+    """
+    Returns the category of the book inside the soup object in parameter
+    """
     for category in soup.find("ul",{"class":"breadcrumb"}).findAll("a")[2:]:
         return category.get_text()
 
 def add_data_img(soup, url):
-    base_url = url[:27]
+    """
+    Returns the image url of the book inside the soup object in parameter
+    Parsing url (with urlunparse/urlparse) and img src to get full url 
+    """
+    parsed = urlparse(url)
+    base_url = urlunparse((parsed.scheme, parsed.netloc, "/", None, None, None))
     img_src = ""
     for img in soup.find("div",{"class":"col-sm-6"}).findAll("img"):
         img_src = base_url + img.get("src")[6:] 
         return img_src
 
-def add_data_title(soup, url):
+def add_data_title(soup):
+    """
+    Returns the title of the book inside the soup object in parameter
+    """
     book_title = soup.find("div",{"class":"col-sm-6 product_main"}).find("h1").text.strip()
     return(book_title)
 
-def add_data_table_values(soup, url):
-    # loop into the list and get all the values from the table
+def add_data_table_values(values, soup):
+    """
+    Returns all the product information (table) of the book inside the soup object
+    """
     for value in soup.findAll("table",{"class":"table table-striped"}):
         for value_text in soup.findAll("td"):
             values.append(value_text.get_text())
     return values
 
 def add_product_description(soup):
+    """
+    Returns the description of the book inside the soup object in parameter
+    Using select because we need to get directly to the first child 
+    paragraph (with >) inside the article.product_page
+    """
     for item in soup.select("article.product_page > p"):
         description = item.text.strip()
     return description
 
-
-def parse_url(soup,url):
-    parsed = urlparse(url)
-    end_url = parsed.path.split("/")
-    mid_url = ""
-    unparsed = urlunparse((parsed.scheme, parsed.netloc, "", None, None, None))
-    print(unparsed)
-    print(parsed)
-    for path in end_url[1:2]:
-        mid_url = mid_url + path + "/"
-    base_url = parsed.scheme + "://" + parsed.netloc + "/" + mid_url
-    page = 1 
-    next_url = base_url + "page-{}.html".format(page)
-    req = requests.get(next_url)
-    if req.status_code == 200:
-        print(req)
-        print(next_url)
-    else:
-        next_url = base_url + "index.html"
-        req = requests.get(next_url)
-        print(req)
-        print(next_url)
-
-
 def download_image(soup, url):
+    """
+    Saves the image of the book inside the soup object in parameter 
+    Writes it inside a file with a .jpg extension
+    Replace ":" and "/" characters with replace() and using re module to 
+    Replace all the other special characters with the sub() method
+    Defined a limit of 25 characters because a long name file creates error
+    """
     parsed = urlparse(url)
-    base_url = parsed.scheme + "://" + parsed.netloc + "/"
+    base_url = urlunparse((parsed.scheme, parsed.netloc, "/", None, None, None))
     for image in soup.find("div",{"class":"col-sm-6"}).findAll("img"):
-        name = image["alt"].replace(":"," ")[:25]
+        name = image["alt"].replace(":"," ").replace("/"," ")[:25]
         re.sub("[^A-Za-z0-9]+"," ",name)
         print("Saving : {}".format(name))
         link = base_url + image.get("src")[6:] 
@@ -91,30 +99,34 @@ def download_image(soup, url):
             f.write(img.content)
     f.close()
 
-# write everything in a csv file
-def write_file(headers, values, csv_name):
+def write_file(values, csv_name):
+    """
+    Writes all the headers and then writes all the values retrieved 
+    Using all the methods used before
+    """
     with open(csv_name, 'w',newline="", encoding="utf-8") as file:
-        # create a writer and assign the delimiter as ";" because of the french delimiter of csv files in excel
         writer = csv.writer(file,delimiter=";")
-        headers = add_header_csv(headers)
+        headers = add_header_csv()
         writer.writerow(headers)
-        add_data_table_values(values,soup,url)
+        add_data_table_values(values, soup)
         writer.writerow(values)
     file.close()
 
 if __name__ == "__main__":
-    csv_headers = []
+    """
+    Create a soup object and request access to the url
+    Retrieve its content - Create a values list in which
+    We append all the data of the previous methods 
+    Write all the values inside the list with the write_file method
+    """
     csv_values = []
     csv_name = "book_scraped.csv"
-    url = "https://books.toscrape.com/catalogue/full-moon-over-noahs-ark-an-odyssey-to-mount-ararat-and-beyond_811/index.html"
+    url = "https://books.toscrape.com/catalogue/red-hoodarsenal-vol-1-open-for-business-red-hoodarsenal-1_729/index.html"
     soup = website_access(url)
-    folder = "Images_Saved"
-    #add_product_description(soup)
-    parse_url(soup, url)
-    #add_data_product_page_url(soup, url)
-    #download_image(soup, url)
-    """csv_values.append(add_data_category(csv_values,soup,url))
-    csv_values.append(add_data_img(csv_values, soup, url))
-    csv_values.append(add_data_title(csv_values, soup, url))
-    csv_values.append(add_data_product_page_url(csv_values, soup,url))
-    write_file(csv_headers, csv_values, csv_name)"""
+    download_image(soup, url)
+    csv_values.append(add_data_category(soup))
+    csv_values.append(add_data_img(soup, url))
+    csv_values.append(add_product_description(soup))
+    csv_values.append(add_data_title(soup))
+    csv_values.append(add_data_product_page_url(soup,url))
+    write_file(csv_values, csv_name)
