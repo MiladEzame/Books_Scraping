@@ -2,9 +2,33 @@
 
 **Version 1.0.0**
 
-## Import Requirements File
 
-pip install -r requirements.txt
+## Virtual environment configuration
+
+- Creating a virtual environment
+
+	Python installation is required for the following process. You can download Python on python.org
+	Follow this step by step tutorial to create your virtual environment :
+	https://uoa-eresearch.github.io/eresearch-cookbook/recipe/2014/11/26/python-virtual-env/
+
+- Install requirement files
+
+	pip install -r requirements.txt
+	
+- Install git on your local workspace
+	
+- Pull the project from github 
+	
+	Create a folder in the path of your choice. 
+	Open a git bash in this folder and run the command "git init" to initialize a .git repository.
+	After getting access to the github repository, pull the project with the following command :
+	"git pull"
+
+- Lauch the script 
+
+	There are 3 scripts, each script is explained in the next section. 
+	Run each script after you configured your virtual environment. 
+	
 
 ## Important information about the differents files 
 
