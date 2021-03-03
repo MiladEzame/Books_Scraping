@@ -1,9 +1,10 @@
 from bs4 import BeautifulSoup as bs
 import csv
 import requests
-import script
+import scrap_page
 import os
 from urllib.parse import urlparse, urlunparse
+
 
 def category_website_access(url):
     """
@@ -15,9 +16,10 @@ def category_website_access(url):
     soup.prettify("utf-8")
     return soup
 
+
 def navigate_books_single_page(soup, url):
     """
-        Navigates inside the book category page, gets all the books links 
+        Navigates inside the book category page, gets all the books links
     """
     parsed = urlparse(url)
     base_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path.split("/")[1], None, None, None))
@@ -30,29 +32,31 @@ def navigate_books_single_page(soup, url):
         urls_books.append(final_url)
     return urls_books
 
+
 def scrape_data_from_product_page(soup, url, csv_name, folder):
     """
-        Repeats the whole process inside the script.py file
+        Repeats the whole process inside the scrap_page.py file
         Retrieves and writes all the information into a csv file
-        Using "os.chdir(folder)" to write inside the images saved folder 
-        Using "os.chdir("..")" to come back to the parent folder 
+        Using "os.chdir(folder)" to write inside the images saved folder
+        Using "os.chdir("..")" to come back to the parent folder
         This allows to write inside the csv file and not inside the folder
     """
     urls_books = navigate_books_single_page(soup, url)   
     for urls in urls_books:
         values = []
         soup = category_website_access(urls)
-        script.download_image(soup, urls)
+        scrap_page.download_image(soup, urls)
         os.chdir("..")
-        values.append(script.add_data_category(soup))
-        values.append(script.add_data_img(soup, urls))
-        values.append(script.add_product_description(soup))
-        values.append(script.add_data_title(soup))
-        values.append(script.add_data_product_page_url(soup, urls))
+        values.append(scrap_page.add_data_category(soup))
+        values.append(scrap_page.add_data_img(soup, urls))
+        values.append(scrap_page.add_product_description(soup))
+        values.append(scrap_page.add_data_title(soup))
+        values.append(urls)
         for value_text in soup.findAll("td"):
             values.append(value_text.get_text())
         write_csv_values(values, csv_name)
         os.chdir(folder)
+
 
 def scrape_all_books_one_category(soup, url, csv_name, folder):
     """
@@ -73,18 +77,18 @@ def scrape_all_books_one_category(soup, url, csv_name, folder):
     path = os.path.split(parsed.path)
     base_url = urlunparse((parsed.scheme, parsed.netloc, path[0], None, None, None))
     for page in range(1, max_page+1):
-        next_url = base_url + "/page-{}.html".format(page)   
-        urls = [] 
+        next_url = base_url + "/page-{}.html".format(page)
         req = requests.get(next_url)    
         soup = bs(req.content, "html.parser")
         if req.status_code == 200:
             scrape_data_from_product_page(soup, next_url, csv_name, folder)
         else:
-            next_url = base_url + "/index.html" 
+            next_url = base_url + "/index.html"
             req = requests.get(next_url) 
             soup = bs(req.content, "html.parser")
             scrape_data_from_product_page(soup, next_url, csv_name, folder)
-            break 
+            break
+
 
 def create_directory(folder):
     """
@@ -95,31 +99,34 @@ def create_directory(folder):
     try:
         os.mkdir(os.path.join(os.getcwd(), folder))
         os.chdir(os.path.join(os.getcwd(), folder))
-    except:
+    except FileExistsError:
         os.chdir(os.path.join(os.getcwd(), folder))
+
 
 def write_csv_headers(csv_name):
     """
-        Writing all the headers into the csv file 
+        Writing all the headers into the csv file
     """
-    with open(csv_name, 'w', encoding = 'utf-8', newline="") as file:
-        headers = script.add_header_csv()
-        writer = csv.writer(file, delimiter = ";")
+    with open(csv_name, 'w', encoding='utf-8', newline="") as file:
+        headers = scrap_page.add_header_csv()
+        writer = csv.writer(file, delimiter=";")
         writer.writerow(headers)
     file.close()
+
 
 def write_csv_values(values, csv_name):
     """
         Writing all the values inside the csv file
     """
-    with open(csv_name, 'a', encoding = 'utf-8', newline = "") as file:
-        writer = csv.writer(file, delimiter = ";")
+    with open(csv_name, 'a', encoding='utf-8', newline="") as file:
+        writer = csv.writer(file, delimiter=";")
         writer.writerow(values)
         file.close()
 
+
 if __name__ == "__main__":
     """
-        Creating a soup object, request access and get the content 
+        Creating a soup object, request access and get the content
         Writing all the headers, if written inside loop, it would be repeated
         Creating a folder once (we do not want to repeat it inside a loop)
         Scraping all the books in all the pages of one single category

@@ -3,49 +3,57 @@
 **Version 1.0.0**
 
 
-## Virtual environment configuration
+## Project Configuration
 
-- Creating a virtual environment
-
-	Python installation is required for the following process. You can download Python on python.org
-	Follow this step by step tutorial to create your virtual environment :
-	https://uoa-eresearch.github.io/eresearch-cookbook/recipe/2014/11/26/python-virtual-env/
-
-- Install requirement files
-
-	pip install -r requirements.txt
+# Pull the project from github 
 	
-- Install git on your local workspace
-	
-- Pull the project from github 
-	
-	Create a folder in the path of your choice. 
+	Create a folder in the path of your choice. On the github website, copy the link of the project
 	Open a git bash in this folder and run the command "git init" to initialize a .git repository.
-	After getting access to the github repository, pull the project with the following command :
-	"git pull"
+	After getting access to the github repository, pull the project with the following commands :
+	- git clone project_link
 
-- Lauch the script 
+# Creating a virtual environment
 
-	There are 3 scripts, each script is explained in the next section. 
-	Run each script after you configured your virtual environment. 
+	Python installation is required for the following process. You can download Python on python.org.
+	Python3 includes venv that allows us to create a virtual environment very easily.
+	Write the following command line in your windows command prompt :
+	- python3 -m venv Environment_name
+	Once you've created a virtual environment, you may activate it.
+	- On Windows, run:
+		Environment_name\Scripts\activate.bat
+	- On Unix or MacOS, run:
+		source Environment_name/bin/activate
+	If you have any difficulties, please refer to this page : https://docs.python.org/3/tutorial/venv.html
 	
+# Install requirement files
+
+	Once the environment is active, type this in the command prompt : 
+	- pip install -r requirements.txt	
+
+# Lauch the script 
+	
+	There are 3 scripts, each script is explained in the next section. 
+	First, open the git bash inside the project folder if you are not in it.
+	Before running the script, make sure you are in the virtual environment.
+	You can run the scrap_all_categories.py file by using the following command :
+	- python scrap_all_categories.py	
 
 ## Important information about the differents files 
 
-- script.py
+- scrap_page.py
 	
-	This script has all the methods to retrieve the product's informations  
-	It is possible to get all the information about a single book with this script
+	This script has all the methods to retrieve one product's informations  
+	Retrieves all the information about a single book on a specific page
 
-- script_category.py
+- scrap_category.py
 	
-	This script retrieves all the information from the script.py script within its methods 
-	It is possible to get all the information about all the books of a whole category
+	This script retrieves all the information from the scrap_page.py script within its methods 
+	Retrieves all the information about all the books of one specific category
 
-- script_all_categories.py
+- scrap_all_categories.py
 	
-	This script retrieves all the information from the script_category.py within its methods
-	It is possible to get all the information about all the books of all the categories
+	This script retrieves all the information from the scrap_category.py within its methods
+	Retrieves all the information about all the books of all the categories
 
 ## Contributors 
 
