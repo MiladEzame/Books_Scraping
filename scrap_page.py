@@ -73,6 +73,7 @@ def add_product_description(soup):
         Using select because we need to get directly to the first child
         paragraph (with >) inside the article.product_page
     """
+    description = ""
     for item in soup.select("article.product_page > p"):
         description = item.text.strip()
     return description
@@ -89,7 +90,8 @@ def download_image(soup, url):
     parsed = urlparse(url)
     base_url = urlunparse((parsed.scheme, parsed.netloc, "/", None, None, None))
     for image in soup.find("div", {"class": "col-sm-6"}).findAll("img"):
-        name = image["alt"].replace(":", " ").replace("/", " ")[:25]
+        name = image["alt"].replace(":", " ").replace("/", " ")
+        name = name.replace("\"", "").replace("?", " ").replace("*", " ")[:25]
         re.sub("[^A-Za-z0-9]+", " ", name)
         print("Saving : {}".format(name))
         link = base_url + image.get("src")[6:] 
@@ -99,7 +101,7 @@ def download_image(soup, url):
     f.close()
 
 
-def write_file(values, csv_name):
+def write_file(values, soup, csv_name):
     """
         Writes all the headers and then writes all the values retrieved
         Using all the methods used before
@@ -111,23 +113,3 @@ def write_file(values, csv_name):
         add_data_table_values(values, soup)
         writer.writerow(values)
     file.close()
-
-
-if __name__ == "__main__":
-    """
-        Create a soup object and request access to the url
-        Retrieve its content - Create a values list in which
-        We append all the data of the previous methods
-        Write all the values inside the list with the write_file method
-    """
-    csv_values = []
-    csv_name = "book_scraped.csv"
-    url = "https://books.toscrape.com/catalogue/red-hoodarsenal-vol-1-open-for-business-red-hoodarsenal-1_729/index.html"
-    soup = website_access(url)
-    download_image(soup, url)
-    csv_values.append(add_data_category(soup))
-    csv_values.append(add_data_img(soup, url))
-    csv_values.append(add_product_description(soup))
-    csv_values.append(add_data_title(soup))
-    csv_values.append(url)
-    write_file(csv_values, csv_name)

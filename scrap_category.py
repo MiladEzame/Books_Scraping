@@ -41,7 +41,7 @@ def scrape_data_from_product_page(soup, url, csv_name, folder):
         Using "os.chdir("..")" to come back to the parent folder
         This allows to write inside the csv file and not inside the folder
     """
-    urls_books = navigate_books_single_page(soup, url)   
+    urls_books = navigate_books_single_page(soup, url)
     for urls in urls_books:
         values = []
         soup = category_website_access(urls)
@@ -122,19 +122,3 @@ def write_csv_values(values, csv_name):
         writer = csv.writer(file, delimiter=";")
         writer.writerow(values)
         file.close()
-
-
-if __name__ == "__main__":
-    """
-        Creating a soup object, request access and get the content
-        Writing all the headers, if written inside loop, it would be repeated
-        Creating a folder once (we do not want to repeat it inside a loop)
-        Scraping all the books in all the pages of one single category
-    """
-    url = "https://books.toscrape.com/catalogue/category/books/travel_2/index.html"
-    csv_name = "books_one_category_scraped.csv"
-    folder = "Images_Saved"
-    soup = category_website_access(url)
-    write_csv_headers(csv_name)
-    create_directory(folder)
-    scrape_all_books_one_category(soup, url, csv_name, folder)

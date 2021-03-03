@@ -77,6 +77,6 @@ if __name__ == "__main__":
     """
     url = "https://books.toscrape.com/index.html"
     soup = scrap_category.category_website_access(url)
-    folder = "Images_Saved"
+    folder = "images_saved"
     scrap_category.create_directory(folder)
     scrape_books_from_all_categories(soup, url, folder)

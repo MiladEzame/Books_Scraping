@@ -3,16 +3,16 @@
 **Version 1.0.0**
 
 
-## Project Configuration
+# Project Configuration
 
-# Pull the project from github 
+## Pull the project from github 
 	
 	Create a folder in the path of your choice. On the github website, copy the link of the project
 	Open a git bash in this folder and run the command "git init" to initialize a .git repository.
 	After getting access to the github repository, pull the project with the following commands :
 	- git clone project_link
 
-# Creating a virtual environment
+## Creating a virtual environment
 
 	Python installation is required for the following process. You can download Python on python.org.
 	Python3 includes venv that allows us to create a virtual environment very easily.
@@ -25,12 +25,12 @@
 		source Environment_name/bin/activate
 	If you have any difficulties, please refer to this page : https://docs.python.org/3/tutorial/venv.html
 	
-# Install requirement files
+## Install requirement files
 
 	Once the environment is active, type this in the command prompt : 
 	- pip install -r requirements.txt	
 
-# Lauch the script 
+## Lauch the script 
 	
 	There are 3 scripts, each script is explained in the next section. 
 	First, open the git bash inside the project folder if you are not in it.
