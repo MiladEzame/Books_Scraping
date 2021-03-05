@@ -14,7 +14,8 @@
 
 	Python installation is required for the following process. You can download Python on python.org.
 	Python3 includes venv that allows us to create a virtual environment very easily.
-	Write the following command line in your windows command prompt to create a new virtual environment called environment_name :
+	Write the following command line in your windows command prompt to create a new virtual-
+	-environment called environment_name :
 	- python3 -m venv environment_name
 	
 	Once you've created the virtual environment, you have to activate it.
