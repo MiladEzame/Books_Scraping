@@ -21,9 +21,8 @@ using this command :
 	pip install virtualenv
 	```
 	
-Write the following command line in your windows command prompt to create a new virtual environment 
-called __environment_name__ :
-	```python 	
+- To create a new virtual environment called __environment_name__, write the following command line in your windows command prompt : 
+	```python
 	python -m venv environment_name
 	```
 	
